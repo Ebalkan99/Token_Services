@@ -1,0 +1,182 @@
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"log"
+    
+    "github.com/ethereum/go-ethereum/ethclient" // ethclient paketini içe aktardık
+)
+var client *ethclient.Client // client değişkenini ethclient.Client olarak güncelledik
+
+func transferHandler(w http.ResponseWriter, r *http.Request) {
+	// Transfer işlemi kodunu buraya yerleştirin
+
+	// Transfer işlemini gerçekleştirirken, gerekli parametreleri r.URL.Query() kullanarak alabilirsiniz.
+	// Örneğin, transfer işlemi yapılacak cüzdan adresi, miktar, token türü gibi bilgiler buradan alınabilir.
+
+	// Transfer işlemi için gerekli bilgileri alın
+	walletAddress := r.URL.Query().Get("walletAddress")
+	amount := r.URL.Query().Get("amount")
+	tokenType := r.URL.Query().Get("tokenType")
+	fromAddress := r.URL.Query().Get("from_address")
+
+	var privateKey *ecdsa.PrivateKey
+
+	if fromAddress != "" {
+    	// fromAddress'e göre cüzdan bağlantısını oluştur
+    	privateKey = getPrivateKeyForAddress(fromAddress)
+	} else {
+    	// Varsayılan cüzdan bağlantısını oluştur
+    	privateKey = getDefaultPrivateKey()
+	}	
+
+	// Transfer işlemi için parametrelerin geçerli olup olmadığını kontrol edin
+	if walletAddress == "" || amount == "" || tokenType == "" {
+		http.Error(w, "Invalid parameters for transfer", http.StatusBadRequest)
+		return
+	}
+
+	// Burada transfer işlemini gerçekleştirme kodunu yazmalısınız.
+	// Bu, ERC20, ERC721 veya ERC1155 tokenlarına göre farklılık gösterebilir.
+	// Transfer işlemi başarılı olduğunda bir yanıt dönmelisiniz.
+
+	var response string
+
+	switch tokenType {
+	case "ERC20":
+		// ERC20 token transfer işlemi
+		txHash, err := transferERC20(walletAddress, amount)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		response = fmt.Sprintf("Transfer completed: %s %s tokens to %s. Transaction hash: %s", amount, tokenType, walletAddress, txHash)
+
+	case "ERC721":
+		// ERC721 token transfer işlemi
+		txHash, err := transferERC721(walletAddress, amount)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		response = fmt.Sprintf("Transfer completed: %s %s tokens to %s. Transaction hash: %s", amount, tokenType, walletAddress, txHash)
+
+	case "ERC1155":
+		// ERC1155 token transfer işlemi
+		txHash, err := transferERC1155(walletAddress, amount)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		response = fmt.Sprintf("Transfer completed: %s %s tokens to %s. Transaction hash: %s", amount, tokenType, walletAddress, txHash)
+
+	default:
+		http.Error(w, "Invalid token type", http.StatusBadRequest)
+		return
+	}
+
+	// HTTP yanıtını gönder
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
+}
+
+// Örnek bir ERC20 transfer işlemi
+func transferERC20(walletAddress, amount string) (string, error) {
+	// Transfer işlemi kodunu burada gerçekleştirin
+	// İlgili ERC20 tokenının transfer işlemi yapılmalıdır
+	txHash := "TransactionHash" // Örnek bir işlem hash'i
+	return txHash, nil
+}
+
+// Örnek bir ERC721 transfer işlemi
+func transferERC721(walletAddress, amount string) (string, error) {
+	// Transfer işlemi kodunu burada gerçekleştirin
+	// İlgili ERC721 tokenının transfer işlemi yapılmalıdır
+	txHash := "TransactionHash" // Örnek bir işlem hash'i
+	return txHash, nil
+}
+
+// Örnek bir ERC1155 transfer işlemi
+func transferERC1155(walletAddress, amount string) (string, error) {
+	// Transfer işlemi kodunu burada gerçekleştirin
+	// İlgili ERC1155 tokenının transfer işlemi yapılmalıdır
+	txHash := "TransactionHash" // Örnek bir işlem hash'i
+	return txHash, nil
+}
+func balanceHandler(w http.ResponseWriter, r *http.Request) {
+	// Bakiye sorgusu kodunu buraya yerleştirin
+}
+func mintHandler(w http.ResponseWriter, r *http.Request) {
+	// Minting işlemi kodunu buraya yerleştirin
+
+	// Minting işlemi için gerekli bilgileri alın
+	walletAddress := r.URL.Query().Get("wallet_address")
+	amount := r.URL.Query().Get("amount")
+	tokenType := r.URL.Query().Get("token_type")
+
+	fromAddress := r.URL.Query().Get("from_address")
+
+	var privateKey *ecdsa.PrivateKey
+
+	if fromAddress != "" {
+    	// fromAddress'e göre cüzdan bağlantısını oluştur
+    	privateKey = getPrivateKeyForAddress(fromAddress)
+	} else {
+    	// Varsayılan cüzdan bağlantısını oluştur
+    	privateKey = getDefaultPrivateKey()
+	}
+
+	// Örnek bir yanıt gönderme
+	response := fmt.Sprintf("Mint request received for %s %s tokens to %s", amount, tokenType, walletAddress)
+
+	// Burada minting işlemini gerçekleştirme kodunu eklemelisiniz.
+	// Token türüne bağlı olarak uygun minting işlemi yapılmalıdır.
+	// Örnek olarak, ERC20 minting işlemi:
+	 result, err := mintERC20(walletAddress, amount)
+
+	// Minting işlemi başarılı ise yanıtı güncelle
+	 if err == nil {
+	     response = fmt.Sprintf("Mint completed: %s %s tokens to %s", amount, tokenType, walletAddress)
+	 }
+
+	// HTTP yanıtını gönder
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
+}
+
+// Örnek bir ERC20 minting işlemi
+func mintERC20(walletAddress, amount string) (string, error) {
+	// Minting işlemi kodunu burada gerçekleştirin
+	// İlgili ERC20 tokenını mintlemelisiniz
+	return "TransactionHash", nil
+}
+
+// Örnek bir ERC721 minting işlemi
+func mintERC721(walletAddress, tokenID string) (string, error) {
+	// Minting işlemi kodunu burada gerçekleştirin
+	// İlgili ERC721 tokenını mintlemelisiniz
+	return "TransactionHash", nil
+}
+
+// Örnek bir ERC1155 minting işlemi
+func mintERC1155(walletAddress, tokenID, amount string) (string, error) {
+	// Minting işlemi kodunu burada gerçekleştirin
+	// İlgili ERC1155 tokenını mintlemelisiniz
+	return "TransactionHash", nil
+}
+
+func main() {
+	var err error
+	client, err = ethclient.Dial("http://localhost:8545")
+	if err != nil {
+		log.Fatal("Ethereum node'una bağlanılamıyor")
+	}
+
+	http.HandleFunc("/transfer", transferHandler)
+	http.HandleFunc("/balance", balanceHandler)
+	http.HandleFunc("/mint", mintHandler)
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
